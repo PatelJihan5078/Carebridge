@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Carebridge</title>
+  
+  <script>
+    function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      if (!email || !password) {
+        alert("Please enter email and password.");
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+      const foundUser = users.find(function(u) {
+        return u.email === email && u.password === password;
+      });
+
+      if (foundUser) {
+        alert("Login successful!");
+        window.location.href = "index.html";
+      } else {
+        alert("Invalid email or password.");
+      }
+    }
+  </script>  
+  <style>
+    :root { --cb-primary:#1e40af; --cb-accent:#2563eb; --cb-bg:#0f172a; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, var(--cb-bg), #0b1226 60%);
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .shell {
+      width: 100%; max-width: 980px; background: #0b1226; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,.35); display: grid; grid-template-columns: 1.1fr 1fr;
+    }
+    .visual {
+      background: radial-gradient(1200px 400px at -10% -10%, #1d4ed8 0, transparent 60%),
+                  radial-gradient(1000px 380px at 110% 110%, #22d3ee 0, transparent 60%),
+                  linear-gradient(135deg, #0b1226, #0b1533);
+      color: white; padding: 40px 28px; display:flex; flex-direction:column; justify-content:space-between;
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:22px}
+    .brand-badge{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--cb-accent),var(--cb-primary));display:flex;align-items:center;justify-content:center}
+    .brand-badge span{color:#fff;font-weight:800}
+    .visual h2{margin:20px 0 8px;font-size:28px}
+    .panel{background:#fff;padding:40px 28px}
+    .panel h1{margin:0 0 6px 0;font-size:26px;color:#0b1226}
+    .panel .muted{color:#475569;margin-bottom:18px}
+    .field{margin:10px 0}
+    .input{width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;outline:none}
+    .input:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(59,130,246,.1)}
+    .primary{width:100%;padding:12px;border:none;border-radius:10px;font-weight:700;background:linear-gradient(90deg,var(--cb-accent),var(--cb-primary));color:#fff;cursor:pointer;margin-top:8px;position:relative;overflow:hidden;transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;box-shadow:0 6px 14px rgba(37,99,235,.25)}
+    .primary:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 10px 18px rgba(37,99,235,.25)}
+    .primary:active{transform:translateY(0) scale(.98)}
+    .primary:focus-visible{outline:none;box-shadow:0 0 0 4px rgba(59,130,246,.25)}
+    .primary::after{content:"";position:absolute;inset:auto 50% 50% auto;width:0;height:0;border-radius:9999px;background:rgba(255,255,255,.35);transform:translate(50%,50%);transition:none}
+    .primary:active::after{width:240px;height:240px;inset:auto 50% 50% auto;transition:width .35s ease,height .35s ease}
+    .row{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:10px;font-size:14px}
+    .row a{color:var(--cb-accent);text-decoration:none;font-weight:600}
+    .alt{margin-top:16px;font-size:14px;text-align:center;color:#475569}
+    .alt a{color:var(--cb-accent);font-weight:700;text-decoration:none}
+    @media (max-width: 860px){ .shell{grid-template-columns:1fr} .visual{min-height:180px} }
+    @media (max-width: 480px){ .panel{padding:28px 20px} .panel h1{font-size:22px} }
+  </style>
+</head>
+<body>
+
+  <div class="shell">
+    <div class="visual">
+      <div>
+        <div class="brand"><div class="brand-badge"><span>CB</span></div> Carebridge</div>
+        <h2>Welcome back</h2>
+        <p>Book trusted professionals in minutes.</p>
+      </div>
+      <small>© 2025 Carebridge</small>
+    </div>
+    <div class="panel">
+      <h1>Sign in</h1>
+      <div class="muted">Use your email and password</div>
+      <div class="field"><input class="input" type="email" id="email" placeholder="Email" required></div>
+      <div class="field"><input class="input" type="password" id="password" placeholder="Password" required></div>
+      <button class="primary" onclick="login()">Login</button>
+      <div class="row"><span></span><a href="signup.html">Create account</a></div>
+      <div class="alt">Don't have an account? <a href="signup.html">Sign up</a></div>
+    </div>
+  </div>
+</body>
+</html>
