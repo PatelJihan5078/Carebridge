@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carebridge — Find & Book Doctors</title>
+  <link rel="stylesheet" href="index.css">
+  
+  
+</head>
+
+<style>
+  /* Top-left Carebridge logo built with CSS */
+  .brand-header{position:fixed;top:12px;left:12px;display:flex;align-items:center;gap:10px;z-index:50}
+  .logo-svg {
+    width: 42px;
+    height: 42px;
+    transition: transform 0.3s ease;
+  }
+  .logo-svg:hover {
+    transform: scale(1.05);
+  }
+  .logo-svg .grad-start {
+    stop-color: #153e72;
+    transition: stop-color 0.3s ease;
+  }
+  .logo-svg .grad-end {
+    stop-color: #3b82f6;
+    transition: stop-color 0.3s ease;
+  }
+  .logo-svg .logo-stroke {
+    stroke: #ffffff;
+    transition: stroke 0.3s ease;
+  }
+  .logo-text{font-weight:600;font-size:22px;color:#153e72;letter-spacing:.2px;transition: color 0.3s ease;}
+  .logo-text .bold{font-weight:800}
+  .site-footer {
+    background: #000000;
+    color: #ffffff;
+    text-align: center;
+    padding: 16px;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+</style>
+<header class="brand-header">
+  <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" class="grad-start" />
+        <stop offset="100%" class="grad-end" />
+      </linearGradient>
+    </defs>
+    <rect x="10" y="10" width="80" height="80" rx="24" fill="url(#logoGrad)" />
+    <path d="M 25,65 A 25,25 0 0,1 75,65" stroke-width="8" stroke-linecap="round" fill="none" class="logo-stroke" />
+    <path d="M 50,28 V 48 M 40,38 H 60" stroke-width="8" stroke-linecap="round" class="logo-stroke" />
+  </svg>
+  <div class="logo-text"><span class="bold">Care</span>bridge</div>
+</header>
+<button id="showbookingbtn"></button>
+<section id="bookingSection" style="display:none;margin:20px 0;">
+  <h4> Your Booking</h4>
+  <ul id="bookingList"></ul>
+</section>
+<link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script>
+    // Firebase configuration (Realtime Database)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDa_MwCYh6cyJByTYW0eX0zN_3FaM5ntXM",
+      authDomain: "carebridge-8ded3.firebaseapp.com",
+      databaseURL: "https://carebridge-8ded3-default-rtdb.firebaseio.com",
+      projectId: "carebridge-8ded3",
+      storageBucket: "carebridge-8ded3.appspot.com",
+      messagingSenderId: "661966779257",
+      appId: "1:661966779257:web:cf4f2bf5abc3fa5f6875a8",
+      measurementId: "G-HBZHRDKQDQ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Live render of bookings from Firebase
+    (function attachRealtimeListener(){
+      const bookingList = document.getElementById('bookingList');
+      db.ref('bookings').on('value', function(snapshot){
+        bookingList.innerHTML = '';
+        const data = snapshot.val();
+        if (!data) {
+          bookingList.innerHTML = '<li>No bookings yet</li>';
+          return;
+        }
+        Object.keys(data).forEach(function(id){
+          const b = data[id];
+          const li = document.createElement('li');
+          li.textContent = `${b.specialty || 'Service'} with ${b.doctor} on ${b.date} at ${b.time}`;
+          bookingList.appendChild(li);
+        });
+      });
+    })();
+  </script>
+
+
+  <!-- Hero + Search -->
+   
+  <section class="mx-auto max-w-6xl px-4 py-8 sm:py-12">
+    <div class="grid gap-8 sm:grid-cols-2 items-center">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight">
+          Book trusted <span class="text-blue-600">proffesionals</span> in minutes
+        </h1>
+        <p class="mt-2 text-gray-600">
+          Doctor, Electrician, Mechanic, and Teacher — all in one place.
+        </p>
+
+        <!-- Search / Filters -->
+        <form id="searchForm" class="mt-6 grid gap-3 sm:grid-cols-7">
+          <input id="q" class="sm:col-span-3 rounded-xl border px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                 placeholder="Search name or specialty…" />
+          <select id="city" class="sm:col-span-2 rounded-xl border px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">All cities</option>
+          </select>
+          <select id="category" class="sm:col-span-2 rounded-xl border px-3 py-3 bg-white outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">All specialties</option>
+          </select>
+          <button class="sm:col-span-7 rounded-xl px-4 py-3 bg-blue-600 text-white font-medium hover:bg-blue-700">
+            Search
+          </button>
+        </form>
+
+        <!-- Quick chips -->
+        <div class="mt-3 flex flex-wrap gap-2 text-sm">
+          <button data-chip="Doctor" class="px-3 py-1 rounded-full border hover:bg-gray-100">Doctor</button>
+          <button data-chip="Teacher" class="px-3 py-1 rounded-full border hover:bg-gray-100">Teacher</button>
+          <button data-chip="Mechanic" class="px-3 py-1 rounded-full border hover:bg-gray-100">Mechanic</button>
+          <button data-chip="Advocate" class="px-3 py-1 rounded-full border hover:bg-gray-100">Advocate</button>
+          <button data-chip="Barber" class="px-3 py-1 rounded-full border hover:bg-gray-100">Barber</button>
+          <button data-chip="Electrician" class="px-3 py-1 rounded-full border hover:bg-gray-100">Electrician</button>
+          <button data-chip="Plumber" class="px-3 py-1 rounded-full border hover:bg-gray-100">Plumber</button>
+          <button data-chip="C.A" class="px-3 py-1 rounded-full border hover:bg-gray-100">C.A</button>
+          <button data-chip="Civil Engineer" class="px-3 py-1 rounded-full border hover:bg-gray-100">Civil Engineer</button>
+          <button data-chip="Photographer" class="px-3 py-1 rounded-full border hover:bg-gray-100">Photographer</button>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border bg-white p-4">
+        <img src="image/main.jpg"
+             alt="Clinic" class="rounded-xl w-full h-64 object-cover">
+      </div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="browse" class="mx-auto max-w-6xl px-4 pb-16">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-x1 font-bold">results <span id="count" class="text-gray-500 text-base"></span></h2>
+      <div class="flex items-center gap-2">
+        <label for="sort" class="text-sm text-gray-600">Sort:</label>
+        <select id="sort" class="rounded-xl border px-3 py-2 bg-white text-sm">
+          <option value="relevance">Relevance</option>
+          <option value="rating">Rating</option>
+          <option value="priceLow">Price: Low to High</option>
+          <option value="priceHigh">Price: High to Low</option>
+        </select>
+        <button id="resetBtn" class="text-sm text-blue-600 hover:underline">Reset</button>
+      </div>
+    </div>
+
+    <div id="results" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"></div>
+    <p id="empty" class="hidden text-gray-500 mt-6">No results. Try a different search.</p>
+  </section>
+
+  <!-- How it works -->
+  <section id="how" class="bg-white border-t">
+    <div class="mx-auto max-w-6xl px-4 py-12 grid gap-6 sm:grid-cols-3">
+      <div class="rounded-2xl border bg-white p-4 shadow-sm">
+        <h4 class="font-semibold mb-1">1. Search</h4>
+        <p class="text-sm text-gray-600">Filter by specialty, city, or name.</p>
+      </div>
+      <div class="rounded-2xl border bg-white p-4 shadow-sm">
+        <h4 class="font-semibold mb-1">2. Compare</h4>
+        <p class="text-sm text-gray-600">See ratings & starting prices.</p>
+      </div>
+      <div class="rounded-2xl border bg-white p-4 shadow-sm">
+        <h4 class="font-semibold mb-1">3. Book</h4>
+        <p class="text-sm text-gray-600">Pick a slot and confirm instantly.</p>
+      </div>
+    </div>
+  </section>
+  <div class="theme-toggle">
+    <button id="toggleTheme">🌗 Toggle Theme</button>
+  </div>
+  <style>
+    .theme-toggle { position: fixed; bottom: 20px; right: 20px; z-index: 100; }
+    #toggleTheme { padding: 10px 15px; border: none; border-radius: 8px; background: #153e72; color: white; cursor: pointer; }
+    body.dark-mode { background-color: #121212; color: #e0e0e0; }
+    body.dark-mode .logo-svg .grad-start { stop-color: #60a5fa; }
+    body.dark-mode .logo-svg .grad-end { stop-color: #3b82f6; }
+    body.dark-mode .logo-svg .logo-stroke { stroke: #121212; }
+    body.dark-mode .logo-text { color: #ffffff; }
+    body.dark-mode .site-footer { background: #1e1e1e; color: #bbbbbb; }
+    body.dark-mode .rounded-2xl { background: #1e1e1e; border-color: #333333; }
+    body.dark-mode .border { border-color: #333333; }
+    body.dark-mode .bg-white { background: #1e1e1e; }
+    body.dark-mode .text-gray-600 { color: #aaaaaa; }
+    body.dark-mode .text-gray-500 { color: #888888; }
+    body.dark-mode .text-gray-700 { color: #dddddd; }
+    body.dark-mode .hover\:bg-gray-100:hover { background: #2a2a2a; }
+    body.dark-mode .focus\:ring-blue-500:focus { box-shadow: 0 0 0 2px rgba(59,130,246,.5); }
+    body.dark-mode .bg-blue-600 { background: #2563eb; }
+    body.dark-mode .hover\:bg-blue-700:hover { background: #1d4ed8; }
+    body.dark-mode .text-blue-600 { color: #60a5fa; }
+    body.dark-mode .hover\:underline:hover { text-decoration: underline; }
+  </style>
+  <script>toggleTheme.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+});
+  </script>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    © 2025 Carebridge. All rights reserved.<br/>
+      About · Privacy · Terms<br/>
+      designed by Novalinkers<br/>
+      Devlopers: Jihan Patel, Yug Javiya<br/>, 
+      Ansh patel,Jaimin Khambhaliya, Dev Bhatia.<br/>
+      contact us: carebridge@.com
+  </footer>
+
+  <!-- Booking Modal -->
+  <dialog id="bookingModal" class="rounded-2xl p-0 w-full max-w-md backdrop:bg-black/30">
+    <form id="bookingForm" method="dialog" class="bg-white rounded-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b flex items-center justify-between">
+        <div>
+          <h3 class="font-semibold">Book Appointment</h3>
+          <p id="modalDoc" class="text-sm text-gray-600"></p>
+        </div>
+        <button type="button" id="closeModal" class="p-2 rounded-lg hover:bg-gray-100">✕</button>
+      </div>
+      <div class="px-5 py-4 grid gap-3">
+        <!-- Doctor select for module script -->
+        
+        
+        <input id="patientName" required class="rounded-xl border px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Your full name" />
+        <input id="patientPhone" required class="rounded-xl border px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Phone number" />
+        <input id="apptDate" type="date" required class="rounded-xl border px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500" />
+        <select id="apptTime" required class="rounded-xl border px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Select time</option>
+          <option>09:00</option><option>09:30</option><option>10:00</option>
+          <option>11:00</option><option>11:30</option><option>12:00</option>
+          <option>15:00</option><option>15:30</option><option>16:00</option>
+        </select>
+        <textarea id="notes" rows="3" class="rounded-xl border px-3 py-3 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Reason (optional)"></textarea>
+        <div class="text-xs text-gray-500 -mt-1">This is a demo. Bookings are stored locally on your device.</div>
+      </div>
+      <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
+        <button type="button" class="rounded-xl px-4 py-2 border hover:bg-gray-100" id="cancelBooking">Cancel</button>
+        <button class="rounded-xl px-4 py-2 bg-blue-600 text-white hover:bg-blue-700">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 hidden">
+    <div class="rounded-xl bg-green-600 text-white px-4 py-2 shadow-lg">Appointment booked successfully!</div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    // --- Sample dataset (edit/extend freely) ---
+     var doctors = [
+      { id:1, name:"Dr. Aryan Khan", specialty:"Doctor", city:"Ahmedabad", price:600, rating:4.8, img:"https://images.unsplash.com/photo-1550831107-1553da8c8464?q=80&w=1200&auto=format&fit=crop", exp:8, hospital:"Shifa Skin Clinic" },
+      { id:2, name:"Dr. Emily Larson", specialty:"Doctor", city:"Vadodara", price:800, rating:4.7, img:"image/img2.jpg", exp:10, hospital:"Pearl Women Care" },
+      { id:3, name:"Sarah Patel", specialty:"Electrician", city:"Surat", price:550, rating:4.6, img:"image/img11.jpg", exp:6, hospital:"Intel" },
+      { id:4, name:"Rohan Mehta", specialty:"Electrician", city:"Anand", price:400, rating:4.4, img:"image/img13.jpg", exp:12, hospital:"Samsung" },
+      { id:5, name:"Dr. Priya Singh", specialty:"Teacher", city:"Surat", price:700, rating:4.9, img:"image/img5.jpg", exp:9, hospital:"Harward university" },
+      { id:6, name:"Dr. Manav Shah", specialty:"Teacher", city:"Ahmedabad", price:1200, rating:4.8, img:"image/img7.jpg", exp:14, hospital:"Nirma University" },
+      { id:7, name:"Ritesh Verma", specialty:"Mechanic", city:"Vadodara", price:900, rating:4.5, img:"image/img10.jpg", exp:11, hospital:"TATA motors" },
+      { id:8, name:"Karan Doshi", specialty:"Mechanic", city:"Anand", price:500, rating:4.3, img:"image/img12.jpg", exp:7, hospital:"Reliance Industries" },
+      { id:9, name:"Anjali Desai", specialty:"Barber", city:"Surat", price:300, rating:4.6, img:"image/barber2.jpg", exp:5, hospital:"Barber shop" },
+      { id:10, name:"Vikram Joshi", specialty:"Barber", city:"Ahmedabad", price:450, rating:4.4, img:"image/barber.jpg", exp:8, hospital:"Barber shop" },
+      { id:11, name:"Ad. Neha Gupta", specialty:"Advocate", city:"Vadodara", price:1500, rating:4.9, img:"image/advocate3.jpg", exp:15, hospital:"Supreme Court" },
+      { id:12, name:"Ad. Rahul Sharma", specialty:"Advocate", city:"Anand", price:1300, rating:4.7, img:"image/advocate2.jpg", exp:13, hospital:"High Court" },
+      { id:13, name:"Amit Kumar", specialty:"Plumber", city:"Surat", price:600, rating:4.5, img:"image/plumber.jpg", exp:10, hospital:"Plumbing Services" },
+      { id:14, name:"Suresh Reddy", specialty:"Plumber", city:"Ahmedabad", price:700, rating:4.6, img:"image/plumber2.jpg", exp:12, hospital:"Plumbing Services" },
+      { id:15, name:"CA. Rina Joshi", specialty:"C.A", city:"Vadodara", price:2000, rating:4.8, img:"image/ca2.jpg", exp:9, hospital:"Deloitte" },
+      { id:16, name:"CA. Anil Mehta", specialty:"C.A", city:"Anand", price:1800, rating:4.7, img:"image/ca.jpg", exp:11, hospital:"KPMG" },
+      { id:17, name:" Tarak Patel", specialty:"Civil Engineer", city:"Anand", price:1800, rating:4.7, img:"image/civil.jpg", exp:7, hospital:"L&T" },
+      { id:18, name:" Kavita soliya", specialty:"Civil Engineer", city:"Anand", price:1800, rating:4.7, img:"image/civil2.jpg", exp:10, hospital:"ARCELOR" },
+      { id:19, name:" Rina Joshi", specialty:"Photographer", city:"Vadodara", price:2000, rating:4.8, img:"image/photo.jpg", exp:9, hospital:"Kasar" },
+      
+    ];
+
+    // --- Elements ---
+    const qEl = document.getElementById('q');
+    const cityEl = document.getElementById('city');
+    const catEl = document.getElementById('category');
+    const sortEl = document.getElementById('sort');
+    const formEl = document.getElementById('searchForm');
+    const resultsEl = document.getElementById('results');
+    const emptyEl = document.getElementById('empty');
+    const countEl = document.getElementById('count');
+    const resetBtn = document.getElementById('resetBtn');
+    const chips = document.querySelectorAll('[data-chip]');
+
+    // modal elements
+    const modal = document.getElementById('bookingModal');
+    const modalDoc = document.getElementById('modalDoc');
+    const bookingForm = document.getElementById('bookingForm');
+    const closeModalBtn = document.getElementById('closeModal');
+    const cancelBookingBtn = document.getElementById('cancelBooking');
+    const toast = document.getElementById('toast');
+
+    // --- Populate filters (cities & specialties) ---
+    (function initFilters(){
+      const cities = [...new Set(doctors.map(d=>d.city))].sort();
+      const specs = [...new Set(doctors.map(d=>d.specialty))].sort();
+      cities.forEach(c=>{
+        const o=document.createElement('option'); o.value=c; o.textContent=c; cityEl.appendChild(o);
+      });
+      specs.forEach(s=>{
+        const o=document.createElement('option'); o.value=s; o.textContent=s; catEl.appendChild(o);
+      });
+    })();
+
+    // --- Rendering ---
+    function card(d){
+      return `
+      <article class="rounded-2xl border bg-white p-3 shadow-sm flex flex-col">
+        <img src="${d.img}" alt="${d.name}" class="rounded-xl w-full h-44 object-cover">
+        <div class="mt-3 grow flex flex-col">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-semibold">${d.name}</h3>
+              <p class="text-sm text-gray-600">${d.specialty} • ${d.hospital}</p>
+              <p class="text-xs text-gray-500 line-clamp-2 mt-1">Experience: ${d.exp} yrs</p>
+            </div>
+            <div class="text-right">
+              <div class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs">⭐ ${d.rating}</div>
+              <div class="text-xs text-gray-600 mt-1">₹${d.price}+ / visit</div>
+            </div>
+          </div>
+          <div class="mt-3 text-sm">📍 ${d.city}</div>
+          <div class="mt-3 flex items-center gap-2">
+            <button class="rounded-xl px-3 py-2 border hover:bg-gray-100 text-sm" onclick="callDoc('${d.name}')">Call</button>
+            <button class="rounded-xl px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 text-sm ml-auto" onclick="openBooking(${d.id})">Book Now</button>
+          </div>
+        </div>
+      </article>`;
+    }
+
+    function render(list){
+      resultsEl.innerHTML = list.map(card).join('');
+      emptyEl.classList.toggle('hidden', list.length!==0);
+      countEl.textContent = `(${list.length})`;
+    }
+
+    function applySort(list){
+      const v = sortEl.value;
+      if(v==='rating') return [...list].sort((a,b)=>b.rating-a.rating);
+      if(v==='priceLow') return [...list].sort((a,b)=>a.price-b.price);
+      if(v==='priceHigh') return [...list].sort((a,b)=>b.price-a.price);
+      return list; // relevance = as filtered
+    }
+
+    function filter(){
+      const t = qEl.value.trim().toLowerCase();
+      const c = cityEl.value;
+      const s = catEl.value;
+      let list = doctors.filter(d=>{
+        const matchesText = !t || d.name.toLowerCase().includes(t) || d.specialty.toLowerCase().includes(t) || d.hospital.toLowerCase().includes(t) || d.city.toLowerCase().includes(t);
+        const matchesCity = !c || d.city===c;
+        const matchesSpec = !s || d.specialty===s;
+        return matchesText && matchesCity && matchesSpec;
+      });
+      list = applySort(list);
+      render(list);
+    }
+
+    // --- Events ---
+    formEl.addEventListener('submit', (e)=>{ e.preventDefault(); filter(); });
+    qEl.addEventListener('input', filter);
+    cityEl.addEventListener('change', filter);
+    catEl.addEventListener('change', filter);
+    sortEl.addEventListener('change', filter);
+    resetBtn.addEventListener('click', ()=>{
+      qEl.value=''; cityEl.value=''; catEl.value=''; sortEl.value='relevance'; filter();
+    });
+    chips.forEach(b=>b.addEventListener('click', ()=>{ catEl.value=b.dataset.chip; filter(); }));
+
+    // --- Actions ---
+    window.callDoc = function(name){
+      alert(`This is a demo. Contact details for ${name} would appear here.`);
+    };
+
+    // booking
+    let activeDoctor = null;
+    window.openBooking = function(id){
+      const d = doctors.find(x=>x.id===id);
+      if(!d) return;
+      activeDoctor = d;
+      modalDoc.textContent = `${d.name} • ${d.specialty} • ${d.city}`;
+      // set min date = today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('apptDate').setAttribute('min', today);
+      modal.showModal();
+    };
+    function closeModal(){ modal.close(); bookingForm.reset(); activeDoctor=null; }
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelBookingBtn.addEventListener('click', closeModal);
+
+    bookingForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = document.getElementById('patientName').value.trim();
+      const phone = document.getElementById('patientPhone').value.trim();
+      const date = document.getElementById('apptDate').value;
+      const time = document.getElementById('apptTime').value;
+      if(!activeDoctor) return;
+
+      const booking = { id: crypto.randomUUID(), doctorId: activeDoctor.id, doctor: activeDoctor.name, specialty: activeDoctor.specialty, city: activeDoctor.city, price: activeDoctor.price, patient:{ name, phone }, date, time, createdAt: Date.now() };
+      const key='cb_bookings';
+const prev = JSON.parse(localStorage.getItem(key) || '[]');
+prev.push(booking);
+localStorage.setItem(key, JSON.stringify(prev));
+
+      db.ref("bookings").push(booking)
+  .then(() => {
+    closeModal();
+    showToast();
+  })
+  .catch((error) => {
+    alert("Booking failed: " + error.message);
+  });
+    });
+
+    function showToast(){
+      toast.classList.remove('hidden');
+      setTimeout(()=>toast.classList.add('hidden'), 1800);
+    }
+
+    // initial render
+    render(doctors);
+    
+
+  </script>
+  
+</body>
+</html>
